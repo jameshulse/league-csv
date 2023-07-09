@@ -41,6 +41,7 @@ class Reader extends AbstractCsv implements TabularDataReader, JsonSerializable
     protected ?int $header_offset = null;
     protected int $nb_records = -1;
     protected bool $is_empty_records_included = false;
+    protected $header_transformer = null;
     /** @var array<string> header record. */
     protected array $header = [];
 
@@ -103,11 +104,32 @@ class Reader extends AbstractCsv implements TabularDataReader, JsonSerializable
             $this->enclosure
         );
 
+        $header = $this->transformHeader($header);
+
         if ([''] === $header) {
             throw SyntaxError::dueToHeaderNotFound($offset);
         }
 
         return $header;
+    }
+
+    public function setHeaderTransformer(callable $callable): static
+    {
+        $this->header_transformer = $callable;
+
+        return $this;
+    }
+
+    /**
+     * Apply a transform to the header record.
+     */
+    protected function transformHeader(array $header): array
+    {
+        if (null === $this->header_transformer) {
+            return $header;
+        }
+
+        return array_map($this->header_transformer, $header);
     }
 
     /**

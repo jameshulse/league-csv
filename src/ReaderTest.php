@@ -164,6 +164,19 @@ EOF;
         [...$csv];
     }
 
+    public function testHeaderCanBeTransformed(): void
+    {
+        $csv = Reader::createFromString(
+            'field 1,field 2,field 3
+            1,2,3
+            4,5,6'
+        );
+        $csv->setHeaderOffset(0);
+        $csv->setHeaderTransformer(fn($col) => str_replace(' ', '_', $col));
+
+        self::assertSame(['field_1', 'field_2', 'field_3'], $csv->getHeader());
+    }
+
     public function testHeaderThrowsExceptionOnEmptyLine(): void
     {
         $str = <<<EOF
